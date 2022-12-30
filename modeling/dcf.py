@@ -29,10 +29,11 @@ def DCF(ticker, ev_statement, income_statement, balance_statement, cashflow_stat
     equity_val, share_price = equity_value(enterprise_val,
                                            ev_statement)
 
-    print('\nEnterprise Value for {}: ${}.'.format(ticker, '%.2E' % Decimal(str(enterprise_val))), 
-              '\nEquity Value for {}: ${}.'.format(ticker, '%.2E' % Decimal(str(equity_val))),
-           '\nPer share value for {}: ${}.\n'.format(ticker, '%.2E' % Decimal(str(share_price))),
-            )
+    print(
+        f"\nEnterprise Value for {ticker}: ${'%.2E' % Decimal(str(enterprise_val))}.",
+        f"\nEquity Value for {ticker}: ${'%.2E' % Decimal(str(equity_val))}.",
+        f"\nPer share value for {ticker}: ${'%.2E' % Decimal(str(share_price))}.\n",
+    )
 
     return {
         'date': income_statement[0]['date'],       # statement date used
@@ -60,12 +61,8 @@ def historical_DCF(ticker, years, forecast, discount_rate, earnings_growth_rate,
     cashflow_statement = get_cashflow_statement(ticker = ticker, period = interval, apikey = apikey)['financials']
     enterprise_value_statement = get_EV_statement(ticker = ticker, period = interval, apikey = apikey)['enterpriseValues']
 
-    if interval == 'quarter':
-        intervals = years * 4
-    else:
-        intervals = years
-
-    for interval in range(0, intervals):
+    intervals = years * 4 if interval == 'quarter' else years
+    for interval in range(intervals):
         try:
             dcf = DCF(ticker, 
                     enterprise_value_statement[interval],
@@ -77,12 +74,13 @@ def historical_DCF(ticker, years, forecast, discount_rate, earnings_growth_rate,
                     earnings_growth_rate,  
                     cap_ex_growth_rate, 
                     perpetual_growth_rate)
-        except (Exception, IndexError) as e:
+        except Exception as e:
             print(traceback.format_exc())
-            print('Interval {} unavailable, no historical statement.'.format(interval)) # catch
-        else: dcfs[dcf['date']] = dcf 
+            print(f'Interval {interval} unavailable, no historical statement.')
+        else:
+            dcfs[dcf['date']] = dcf
         print('-'*60)
-    
+
     return dcfs
 
 
@@ -166,9 +164,11 @@ def enterprise_value(income_statement, cashflow_statement, balance_statement, pe
     flows = []
 
     # Now let's iterate through years to calculate FCF, starting with most recent year
-    print('Forecasting flows for {} years out, starting at {}.'.format(period, income_statement[0]['date']),
-         ('\n         DFCF   |    EBIT   |    D&A    |    CWC     |   CAP_EX   | '))
-    for yr in range(1, period+1):    
+    print(
+        f"Forecasting flows for {period} years out, starting at {income_statement[0]['date']}.",
+        '\n         DFCF   |    EBIT   |    D&A    |    CWC     |   CAP_EX   | ',
+    )
+    for yr in range(1, period+1):
 
         # increment each value by growth rate
         ebit = ebit * (1 + (yr * earnings_growth_rate))
@@ -181,15 +181,17 @@ def enterprise_value(income_statement, cashflow_statement, balance_statement, pe
         PV_flow = flow/((1 + discount)**yr)
         flows.append(PV_flow)
 
-        print(str(int(income_statement[0]['date'][0:4]) + yr) + '  ',
-              '%.2E' % Decimal(PV_flow) + ' | ',
-              '%.2E' % Decimal(ebit) + ' | ',
-              '%.2E' % Decimal(non_cash_charges) + ' | ',
-              '%.2E' % Decimal(cwc) + ' | ',
-              '%.2E' % Decimal(cap_ex) + ' | ')
+        print(
+            str(int(income_statement[0]['date'][:4]) + yr) + '  ',
+            '%.2E' % Decimal(PV_flow) + ' | ',
+            '%.2E' % Decimal(ebit) + ' | ',
+            '%.2E' % Decimal(non_cash_charges) + ' | ',
+            '%.2E' % Decimal(cwc) + ' | ',
+            '%.2E' % Decimal(cap_ex) + ' | ',
+        )
 
     NPV_FCF = sum(flows)
-    
+
     # now calculate terminal value using perpetual growth rate
     final_cashflow = flows[-1] * (1 + perpetual_growth_rate)
     TV = final_cashflow/(discount - perpetual_growth_rate)

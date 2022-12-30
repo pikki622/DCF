@@ -29,17 +29,7 @@ def main(args):
 
     if args.s > 0:
         if args.v is not None:
-            if args.v == 'eg' or 'earnings_growth_rate':
-                cond, dcfs = run_setup(args, variable = 'eg')
-            elif args.v == 'cg' or 'cap_ex_growth_rate':
-                cond, dcfs = run_setup(args, variable = 'cg')
-            elif args.v == 'pg' or 'perpetual_growth_rate':
-                cond, dcfs = run_setup(args, variable = 'pg')
-            elif args.v == 'discount_rate' or 'discount':
-                cond, dcfs = run_setup(args, variable = 'discount')
-            # TODO: more dynamically  do this...potentially? 
-            else:
-                raise ValueError('args.variable is invalid, must choose (as of now) from this list -> [earnings_growth_rate, cap_ex_growth_rate, perpetual_growth_rate, discount')
+            cond, dcfs = run_setup(args, variable = 'eg')
         else:
             # should  we just default to something?
             raise ValueError('If step (-- s) is > 0, you must specify the variable via --v. What was passed is invalid.')
@@ -55,11 +45,11 @@ def main(args):
 
 def run_setup(args, variable):
     dcfs, cond = {}, {args.v: []}
-    
+
     for increment in range(1, int(args.steps) + 1): # default to 5 steps?
         # this should probably be wrapped in another function..
         var = vars(args)[variable] * (1 + (args.s * increment))
-        step = '{}: {}'.format(args.v, str(var)[0:4])
+        step = f'{args.v}: {str(var)[:4]}'
 
         cond[args.v].append(step)
         vars(args)[variable] = var

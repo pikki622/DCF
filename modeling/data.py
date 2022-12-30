@@ -17,7 +17,7 @@ def get_api_url(requested_data, ticker, period, apikey):
         url = 'https://financialmodelingprep.com/api/v3/{requested_data}/{ticker}?period=quarter&apikey={apikey}'.format(
             requested_data=requested_data, ticker=ticker, apikey=apikey)
     else:
-        raise ValueError("invalid period " + str(period))
+        raise ValueError(f"invalid period {str(period)}")
     return url
 
 
@@ -129,11 +129,10 @@ def get_batch_stock_prices(tickers, apikey=''):
     returns:
         dict of {'ticker':  price}
     """
-    prices = {}
-    for ticker in tickers:
-        prices[ticker] = get_stock_price(ticker=ticker, apikey=apikey)['price']
-
-    return prices
+    return {
+        ticker: get_stock_price(ticker=ticker, apikey=apikey)['price']
+        for ticker in tickers
+    }
 
 
 def get_historical_share_prices(ticker, dates, apikey=''):
@@ -149,7 +148,8 @@ def get_historical_share_prices(ticker, dates, apikey=''):
     """
     prices = {}
     for date in dates:
-        try: date_start, date_end = date[0:8] + str(int(date[8:]) - 2), date
+        try:
+            date_start, date_end = date[:8] + str(int(date[8:]) - 2), date
         except:
             print(f"Error parsing '{date}' to date.")
             print(traceback.format_exc())
@@ -163,7 +163,7 @@ def get_historical_share_prices(ticker, dates, apikey=''):
             try:
                 prices[date_start] = get_jsonparsed_data(url)['historical'][0]['close']
             except IndexError:
-                print(date + ' ', get_jsonparsed_data(url))
+                print(f'{date} ', get_jsonparsed_data(url))
 
     return prices
 

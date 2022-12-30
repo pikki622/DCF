@@ -44,7 +44,7 @@ def visualize_bulk_historicals(dcfs, ticker, condition, apikey):
     """
     dcf_share_prices = {}
     variable = list(condition.keys())[0]
-    
+
     #TODO: make this more eloquent for handling the plotting of multiple condition formats
     try:
         conditions = [str(cond) for cond in list(condition.values())[0]]
@@ -69,14 +69,17 @@ def visualize_bulk_historicals(dcfs, ticker, condition, apikey):
         ticker=ticker,
         dates=list(dcf_share_prices[list(dcf_share_prices.keys())[0]].keys())[::-1],
         apikey=apikey)
-    plt.plot(list(historical_stock_prices.keys()),
-             list(historical_stock_prices.values()), label = '${} over time'.format(ticker))
+    plt.plot(
+        list(historical_stock_prices.keys()),
+        list(historical_stock_prices.values()),
+        label=f'${ticker} over time',
+    )
 
     plt.xlabel('Date')
     plt.ylabel('Share price ($)')
     plt.legend(loc = 'upper right')
-    plt.title('$' + ticker + '  ')
-    plt.savefig('imgs/{}_{}.png'.format(ticker, list(condition.keys())[0]))
+    plt.title(f'${ticker}  ')
+    plt.savefig(f'imgs/{ticker}_{list(condition.keys())[0]}.png')
     plt.show()
 
 
@@ -84,12 +87,9 @@ def visualize_historicals(dcfs):
     """
     2d plot comparing dcf history to share price history
     """
-    pass
-
-    dcf_share_prices = {}
-    for k, v in dcfs.items():
-        dcf_share_prices[dcfs[k]['date']] = dcfs[k]['share_price']
-
+    dcf_share_prices = {
+        dcfs[k]['date']: dcfs[k]['share_price'] for k, v in dcfs.items()
+    }
     xs = list(dcf_share_prices.keys())[::-1]
     ys = list(dcf_share_prices.values())[::-1]
 
